@@ -74,7 +74,4 @@ function Player:checkCollision(otherPlayer)
            self.y + self.height >= otherPlayer.y and self.y <= otherPlayer.y + otherPlayer.height
 end
 
-
-
-
 return Player
