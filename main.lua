@@ -1,132 +1,65 @@
+local Player = require "Player"
+local Healthbar = require "Healthbar"
+
 function love.load()
-    player1 = {
-        x = 100, y = 300,
-        width = 50, height = 100,
-        color = {1, 0, 0},
-        speed = 200,
-        isPunching = false,
-        health = 100,
-        maxHealth = 100,
-        vy = 0,
-        isJumping = false
-    }
+    love.window.setTitle("THE POOKIES FIGHT")
+    love.window.setMode(800, 600, {resizable=false, vsync=true})
 
-    player2 = {
-        x = 600, y = 300,
-        width = 50, height = 100,
-        color = {0, 0, 1},
-        speed = 200,
-        isPunching = false,
-        health = 100,
-        maxHealth = 100,
-        vy = 0,
-        isJumping = false
-    }
+    gravity = 1000
 
-    gravity = 800
-    groundY = 300
+     -- Create players
+     player1 = Player.new(100, 300, {1, 0, 0}, {}, {left = 'a', right = 'd', jump = 'w', punch = 'f'})
+     player2 = Player.new(600, 300, {0, 0, 1}, {}, {left = 'left', right = 'right', jump = 'up', punch = 'l'})
+ 
+     -- Create healthbars
+     healthBar1 = Healthbar.new(50, 50, player1)
+     healthBar2 = Healthbar.new(550, 50, player2)
 end
 
+-- Set up the game logic
 function love.update(dt)
-    -- Player 1 controls (A/D to move)
-    if love.keyboard.isDown('a') then
-        player1.x = player1.x - player1.speed * dt
-    elseif love.keyboard.isDown('d') then
-        player1.x = player1.x + player1.speed * dt
-    end
+    -- Set groundY once (good)
+    groundY = 300
 
-    -- Player 2 controls (Left/Right arrows to move)
-    if love.keyboard.isDown('left') then
-        player2.x = player2.x - player2.speed * dt
-    elseif love.keyboard.isDown('right') then
-        player2.x = player2.x + player2.speed * dt
-    end
-
-    -- Jumping physics
-    for _, player in ipairs({player1, player2}) do
-        if player.isJumping then
-            player.vy = player.vy + gravity * dt
-            player.y = player.y + player.vy * dt
-
-            if player.y >= groundY then
-                player.y = groundY
-                player.vy = 0
-                player.isJumping = false
-            end
-        end
-    end
-
-    -- Clamp positions to screen
-    player1.x = math.max(0, math.min(player1.x, love.graphics.getWidth() - player1.width))
-    player2.x = math.max(0, math.min(player2.x, love.graphics.getWidth() - player2.width))
+    -- Update both players normally
+    player1:update(dt)
+    player2:update(dt)
 end
 
-function love.keypressed(key)
-    if key == 'f' then
+ function love.keypressed(key)
+    if key == player1.controls.jump and not player1.isJumping then
+        player1.isJumping = true
+        player1.vy = -300
+    elseif key == player2.controls.jump and not player2.isJumping then
+        player2.isJumping = true
+        player2.vy = -300
+    end
+
+    -- Punching
+    if key == player1.controls.punch then
         player1.isPunching = true
-        if checkCollision(player1, player2) then
+        if player1:checkCollision(player2) then
             player2.health = math.max(player2.health - 10, 0)
+            player2.knockback = 600
         end
-    elseif key == 'l' then
+    elseif key == player2.controls.punch then
         player2.isPunching = true
-        if checkCollision(player2, player1) then
+        if player2:checkCollision(player1) then
             player1.health = math.max(player1.health - 10, 0)
-        end
-    elseif key == 'w' then
-        if not player1.isJumping then
-            player1.isJumping = true
-            player1.vy = -400
-        end
-    elseif key == 'up' then
-        if not player2.isJumping then
-            player2.isJumping = true
-            player2.vy = -400
+            player1.knockback = -600
         end
     end
 end
 
 function love.draw()
-    -- Draw Player 1
-    love.graphics.setColor(player1.color)
-    love.graphics.rectangle('fill', player1.x, player1.y, player1.width, player1.height)
+    -- Draw players
+    player1:draw()
+    player2:draw()
 
-    -- Draw Player 2
-    love.graphics.setColor(player2.color)
-    love.graphics.rectangle('fill', player2.x, player2.y, player2.width, player2.height)
+    -- Draw healthbars
+    healthBar1:draw()
+    healthBar2:draw()
 
-    -- Draw Punches
-    if player1.isPunching then
-        love.graphics.setColor(1, 1, 0)
-        love.graphics.rectangle('fill', player1.x + player1.width, player1.y + 30, 20, 20)
-        player1.isPunching = false
-    end
-
-    if player2.isPunching then
-        love.graphics.setColor(1, 1, 0)
-        love.graphics.rectangle('fill', player2.x - 20, player2.y + 30, 20, 20)
-        player2.isPunching = false
-    end
-
-    -- Draw Health Bars
-    drawHealthBar(player1, 50, 50)
-    drawHealthBar(player2, 550, 50)
-
+    -- Reset color to white
     love.graphics.setColor(1, 1, 1)
-end
-
-function drawHealthBar(player, x, y)
-    local healthBarWidth = 200
-    local healthBarHeight = 20
-    local healthPercentage = player.health / player.maxHealth
-
-    love.graphics.setColor(0.5, 0.5, 0.5)
-    love.graphics.rectangle('fill', x, y, healthBarWidth, healthBarHeight)
-
-    love.graphics.setColor(0, 1, 0)
-    love.graphics.rectangle('fill', x, y, healthBarWidth * healthPercentage, healthBarHeight)
-end
-
-function checkCollision(p1, p2)
-    return p1.x + p1.width >= p2.x and p1.x <= p2.x + p2.width and
-           p1.y + p1.height >= p2.y and p1.y <= p2.y + p2.height
 end
