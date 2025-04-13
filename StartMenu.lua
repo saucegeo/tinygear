@@ -25,6 +25,7 @@ function StartMenu:keypressed(key)
         -- Return the new state instead of trying to set it directly
         return "playing"
     end
+    
     return nil -- No state change
 end
 

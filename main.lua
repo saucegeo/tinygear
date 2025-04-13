@@ -11,7 +11,8 @@ local gameState = GameState.MENU -- Game state: GameState.MENU or GameState.PLAY
 local menu = StartMenu.new()
 
 function love.load()
-    love.window.setTitle("THE POOKIES FIGHT")
+    -- Set up the game window and title
+    love.window.setTitle("THE POOKIE FIGHTER")
     love.window.setMode(800, 600, {resizable=false, vsync=true})
 
     gravity = 1000
@@ -25,9 +26,8 @@ function love.load()
      healthBar2 = Healthbar.new(550, 50, player2)
 end
 
--- Set up the game logic
 function love.update(dt)
-    -- Set groundY once (good)
+    -- Set ground position
     groundY = 300
     if gameState == GameState.MENU then
         menu:update(dt)  -- Update menu
@@ -57,13 +57,21 @@ function love.keypressed(key)
             player1.isPunching = true
             if player1:checkCollision(player2) then
                 player2.health = math.max(player2.health - 10, 0)
-                player2.knockback = 600
+                if player1.x < player2.x then
+                    player2.knockback = 600
+                else
+                    player2.knockback = -600
+                end
             end
         elseif key == player2.controls.punch then
             player2.isPunching = true
             if player2:checkCollision(player1) then
                 player1.health = math.max(player1.health - 10, 0)
-                player1.knockback = -600
+                if player2.x < player1.x then
+                    player1.knockback = 600
+                else
+                    player1.knockback = -600
+                end
             end
         end
     end

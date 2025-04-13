@@ -1,4 +1,4 @@
--- Healthbar.lua
+-- defines the Healthbar class
 local Healthbar = {}
 Healthbar.__index = Healthbar
 

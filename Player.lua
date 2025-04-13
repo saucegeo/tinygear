@@ -1,7 +1,7 @@
 local Player = {}
 Player.__index = Player
 
-function Player.new(x, y, color, abilities, controls)
+function Player.new(x, y, color, skills, controls)
     local self = setmetatable({}, Player)
     self.x = x
     self.y = y
@@ -16,23 +16,27 @@ function Player.new(x, y, color, abilities, controls)
     self.maxHealth = 100
 
     -- Skills
-    self.canDoubleJump = abilities and abilities.canDoubleJump or false
-    self.canDash = abilities and abilities.canDash or false
+    self.skills = skills or {}
 
     -- Controls
     self.controls = controls or {}
 
+    self.facing = "right"
     return self
 end
 
 
 function Player:update(dt)
+    -- Handle horizontal movement (always applies)
     if love.keyboard.isDown(self.controls.left) then 
         self.x = self.x - self.speed * dt
+        self.facing = "left"
     elseif love.keyboard.isDown(self.controls.right) then
         self.x = self.x + self.speed * dt
+        self.facing = "right"
     end
 
+    -- Handle jumping
     if self.isJumping then
         self.vy = self.vy + gravity * dt
         self.y = self.y + self.vy * dt
@@ -45,29 +49,27 @@ function Player:update(dt)
         end
     end
 
-    -- Knockback
+    -- Knockback and screen wrapping are left unchanged below
     if self.knockback ~= 0 then
         self.x = self.x + self.knockback * dt
         self.knockback = self.knockback * 0.9
         if math.abs(self.knockback) < 5 then
             self.knockback = 0
         end
-        
     end
-     -- Screen wrapping
-    local windowWidth = love.graphics.getWidth()
 
+    local windowWidth = love.graphics.getWidth()
     if self.x > windowWidth then
         self.x = -self.width
     elseif self.x + self.width < 0 then
         self.x = windowWidth
     end
-
-    function Player:draw()
-        love.graphics.setColor(self.color)
-        love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
-    end 
 end
+
+function Player:draw()
+    love.graphics.setColor(self.color)
+    love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
+end 
 
 function Player:checkCollision(otherPlayer)
     return self.x + self.width >= otherPlayer.x and self.x <= otherPlayer.x + otherPlayer.width and
