@@ -19,11 +19,13 @@ function love.load()
     background = Background:new("assets/backgrounds/level1.png")
 
     gravity = 1000
-    groundY = 450
+    groundY = 300
 
      -- Create players
-     player1 = Player.new(100, groundY, {1, 0, 0}, {}, {left = 'a', right = 'd', jump = 'w', punch = 'f'})
-     player2 = Player.new(600, groundY, {0, 0, 1}, {}, {left = 'left', right = 'right', jump = 'up', punch = 'l'})
+     player1 = Player.new(100, groundY, {1, 0, 0}, {}, {left = 'a', right = 'd', jump = 'w', punch = 'f'},
+    "assets/characters/elsh.png")
+     player2 = Player.new(600, groundY, {0, 0, 1}, {}, {left = 'left', right = 'right', jump = 'up', punch = 'l'},
+    "assets/characters/lina.png")
  
      -- Create healthbars
      healthBar1 = Healthbar.new(50, 50, player1)
@@ -57,9 +59,9 @@ function love.keypressed(key)
         -- Punching
         if key == player1.controls.punch then
             player1.isPunching = true
-            if player1:checkCollision(player2) then
+            if player1:checkCollision(player2) and ((player1.facing == "right" and player1.x < player2.x) or (player1.facing == "left" and player1.x > player2.x)) then
                 player2.health = math.max(player2.health - 10, 0)
-                if player1.x < player2.x then
+                if player1.facing == "right" then
                     player2.knockback = 600
                 else
                     player2.knockback = -600
@@ -67,17 +69,17 @@ function love.keypressed(key)
             end
         elseif key == player2.controls.punch then
             player2.isPunching = true
-            if player2:checkCollision(player1) then
+            if player2:checkCollision(player1) and ((player2.facing == "right" and player2.x < player1.x) or (player2.facing == "left" and player2.x > player1.x)) then
                 player1.health = math.max(player1.health - 10, 0)
-                if player2.x < player1.x then
+                if player2.facing == "right" then
                     player1.knockback = 600
                 else
                     player1.knockback = -600
                 end
             end
         end
+        end
     end
-end
 
 function love.draw()
     background:draw()  -- Draw the background
