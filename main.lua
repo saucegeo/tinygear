@@ -1,6 +1,8 @@
 local Player = require "Player"
 local Healthbar = require "Healthbar"
 local StartMenu = require "StartMenu"
+local Background = require ("Background")
+local background
 
 local GameState = {
     MENU = "menu",
@@ -14,12 +16,14 @@ function love.load()
     -- Set up the game window and title
     love.window.setTitle("THE POOKIE FIGHTER")
     love.window.setMode(800, 600, {resizable=false, vsync=true})
+    background = Background:new("assets/backgrounds/level1.png")
 
     gravity = 1000
+    groundY = 450
 
      -- Create players
-     player1 = Player.new(100, 300, {1, 0, 0}, {}, {left = 'a', right = 'd', jump = 'w', punch = 'f'})
-     player2 = Player.new(600, 300, {0, 0, 1}, {}, {left = 'left', right = 'right', jump = 'up', punch = 'l'})
+     player1 = Player.new(100, groundY, {1, 0, 0}, {}, {left = 'a', right = 'd', jump = 'w', punch = 'f'})
+     player2 = Player.new(600, groundY, {0, 0, 1}, {}, {left = 'left', right = 'right', jump = 'up', punch = 'l'})
  
      -- Create healthbars
      healthBar1 = Healthbar.new(50, 50, player1)
@@ -27,8 +31,6 @@ function love.load()
 end
 
 function love.update(dt)
-    -- Set ground position
-    groundY = 300
     if gameState == GameState.MENU then
         menu:update(dt)  -- Update menu
     elseif gameState == GameState.PLAYING then 
@@ -78,6 +80,7 @@ function love.keypressed(key)
 end
 
 function love.draw()
+    background:draw()  -- Draw the background
     -- Draw players
 
     if gameState == GameState.MENU then
@@ -93,4 +96,5 @@ function love.draw()
     -- Reset color to white
     love.graphics.setColor(1, 1, 1)
     end
+
 end
