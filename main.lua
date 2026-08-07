@@ -2,6 +2,7 @@ local Player = require "Player"
 local Healthbar = require "Healthbar"
 local StartMenu = require "StartMenu"
 local Background = require ("Background")
+local PauseMenu = require "PauseMenu"
 local background
 
 local GameState = {
@@ -11,6 +12,7 @@ local GameState = {
 
 local gameState = GameState.MENU -- Game state: GameState.MENU or GameState.PLAYING
 local menu = StartMenu.new()
+local pauseMenu = PauseMenu.new()
 
 function love.load()
     -- Set up the game window and title
@@ -47,7 +49,15 @@ function love.keypressed(key)
         if newState then
             gameState = GameState.PLAYING  -- Update the game state if we got a return value
         end
+    elseif gameState == GameState.PAUSE then
+        local newState = pauseMenu:keypressed(key)
+        if newState then
+            gameState = GameState.PLAYING
+        end
     elseif gameState == GameState.PLAYING then
+        if key == "p" then
+            gameState = GameState.PAUSE
+        end
         if key == player1.controls.jump and not player1.isJumping then
             player1.isJumping = true
             player1.vy = -300
@@ -83,20 +93,21 @@ function love.keypressed(key)
 
 function love.draw()
     background:draw()  -- Draw the background
-    -- Draw players
-
+    -- Draw players 
     if gameState == GameState.MENU then
         menu:draw()  -- Draw the menu
-    elseif gameState == GameState.PLAYING then
-
-    player1:draw()
-    player2:draw()
-    
-    healthBar1:draw()
-    healthBar2:draw()
-
-    -- Reset color to white
-    love.graphics.setColor(1, 1, 1)
+    elseif gameState == GameState.PLAYING or gameState == GameState.PAUSE then
+        player1:draw()
+        player2:draw()
+        if gameState == GameState.PLAYING then
+            healthBar1:draw()
+            healthBar2:draw()
+            love.graphics.setColor(1, 1, 1) -- reset color to white to not have green screen
+        end
     end
 
+    if gameState == GameState.PAUSE then
+        pauseMenu:draw() -- draw the pause menu
+    end
 end
+
